@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "447303096678",
+    "project_id": "nubestock-54a89",
+    "storage_bucket": "nubestock-54a89.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447303096678:android:916656abfbe493a99a10a7",
+        "android_client_info": {
+          "package_name": "com.nubestock.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABG9WZXx1T1G28e_1G0IFySUBvTT0_ehU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

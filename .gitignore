@@ -31,7 +31,13 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# azurite
+AzuriteConfig
+__azurite_db_*.json
+__blobstorage__/
 
 # typescript
 *.tsbuildinfo

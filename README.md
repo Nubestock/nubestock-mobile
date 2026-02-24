@@ -1,50 +1,469 @@
-# Welcome to your Expo app 👋
+# 📱 Nutregam Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicación móvil para Nutregam que permite a los usuarios de producción y ventas registrar información en tiempo real, sincronizándose con el sistema centralizado basado en Azure Functions.
 
-## Get started
+## 📋 Tabla de Contenidos
 
-1. Install dependencies
+1. [Información General](#información-general)
+2. [Arquitectura de la Aplicación](#arquitectura-de-la-aplicación)
+3. [Configuración Inicial](#configuración-inicial)
+4. [Sistema de Autenticación](#sistema-de-autenticación)
+5. [Sistema de Roles y Permisos](#sistema-de-roles-y-permisos)
+6. [API Reference](#api-reference)
+7. [Módulo de Ventas](#módulo-de-ventas)
+8. [Módulo de Producción](#módulo-de-producción)
+9. [Sistema de Diseño](#sistema-de-diseño)
+10. [Componentes Reutilizables](#componentes-reutilizables)
+11. [Navegación](#navegación)
+12. [Manejo de Estado](#manejo-de-estado)
+13. [Almacenamiento Local](#almacenamiento-local)
+14. [Ejemplos de Integración](#ejemplos-de-integración)
+15. [Mejores Prácticas](#mejores-prácticas)
+16. [Testing](#testing)
+17. [Deployment](#deployment)
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## 1. Información General
 
-   ```bash
-   npx expo start
-   ```
+### 🎯 Objetivo
+Aplicación móvil para Nutregam que permite a los usuarios de producción y ventas registrar información en tiempo real, sincronizándose con el sistema centralizado basado en Azure Functions.
 
-In the output, you'll find options to open the app in a
+### Usuarios Objetivo
+- **2 Usuarios de Producción (Operadores)**: Registro de producción diaria
+- **Usuarios de Ventas (Vendedores)**: Gestión de ventas
+- **Usuarios Provisionales**: Acceso limitado según permisos
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 🛠️ Stack Tecnológico
+- **Framework**: React Native + Expo
+- **Lenguaje**: TypeScript
+- **Estado Global**: React Context API / Zustand
+- **Navegación**: Expo Router
+- **HTTP Client**: Axios
+- **Almacenamiento**: AsyncStorage / SecureStore
+- **UI Components**: React Native Paper / Custom Components
+- **Validación**: Yup + Formik
+- **Backend**: Azure Functions (REST API)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### 🎨 Diseño
+- **Identidad Corporativa**: Verde #006A4E
+- **Estilo**: Minimalista, profesional, colores mate
+- **Responsive**: Optimizado para móviles (iOS y Android)
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 2. Arquitectura de la Aplicación
 
-```bash
-npm run reset-project
+### Estructura de Carpetas
+
+```
+nubestock-mobile/
+├── app/                          # Expo Router
+│   ├── (tabs)/                   # Tabs navigation
+│   │   ├── sales.tsx
+│   │   ├── production.tsx
+│   │   ├── profile.tsx
+│   │   └── _layout.tsx
+│   ├── login.tsx
+│   └── _layout.tsx
+├── src/
+│   ├── api/                      # Configuración y llamadas API
+│   │   ├── client.ts
+│   │   ├── auth.api.ts
+│   │   ├── sales.api.ts
+│   │   ├── production.api.ts
+│   │   ├── products.api.ts
+│   │   ├── customers.api.ts
+│   │   └── machinery.api.ts
+│   ├── components/               # Componentes reutilizables
+│   │   └── common/
+│   │       ├── Button.tsx
+│   │       ├── Card.tsx
+│   │       ├── Input.tsx
+│   │       └── Loading.tsx
+│   ├── screens/                 # Pantallas de la app
+│   │   ├── auth/
+│   │   │   └── LoginScreen.tsx
+│   │   ├── sales/
+│   │   │   └── SalesListScreen.tsx
+│   │   ├── production/
+│   │   │   └── ProductionListScreen.tsx
+│   │   └── shared/
+│   │       └── ProfileScreen.tsx
+│   ├── context/                 # Context API
+│   │   └── AuthContext.tsx
+│   ├── hooks/                   # Custom hooks
+│   │   └── useAuth.ts
+│   ├── types/                   # TypeScript types
+│   │   ├── auth.types.ts
+│   │   ├── sales.types.ts
+│   │   ├── production.types.ts
+│   │   ├── product.types.ts
+│   │   ├── customer.types.ts
+│   │   └── machinery.types.ts
+│   ├── utils/                   # Utilidades
+│   │   ├── validation.ts
+│   │   ├── formatting.ts
+│   │   ├── storage.ts
+│   │   └── permissions.ts
+│   ├── constants/               # Constantes
+│   │   ├── colors.ts
+│   │   ├── config.ts
+│   │   └── permissions.ts
+│   └── styles/                  # Estilos globales
+│       ├── theme.ts
+│       └── typography.ts
+├── assets/                      # Recursos estáticos
+├── app.config.js               # Configuración de Expo (con variables de entorno)
+├── .env                        # Variables de entorno (no se sube al repo)
+├── .env.example                # Plantilla de variables de entorno
+├── package.json
+└── tsconfig.json
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 3. Configuración Inicial
 
-To learn more about developing your project with Expo, look at the following resources:
+### Instalación de Dependencias
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+# Instalar dependencias
+npm install
 
-## Join the community
+# Para desarrollo iOS
+npm run ios
 
-Join our community of developers creating universal apps.
+# Para desarrollo Android
+npm run android
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Para desarrollo web
+npm run web
+```
+
+### ⚙️ Configuración del Cliente API
+
+La configuración del API se maneja mediante variables de entorno. 
+
+#### Configurar Variables de Entorno
+
+1. **Copiar el archivo de ejemplo:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Editar el archivo `.env` con tus valores:**
+   ```env
+   # API Configuration
+   API_URL=https://nutregam-api.azurewebsites.net/api
+   API_TIMEOUT=30000
+   
+   # App Configuration
+   APP_NAME=Nutregam
+   APP_VERSION=1.0.0
+   AUTO_REFRESH_INTERVAL=30000
+   DEFAULT_PAGE_SIZE=20
+   ```
+
+3. **Para desarrollo local, ajusta `API_URL`:**
+   ```env
+   API_URL=http://localhost:7071/api
+   ```
+
+**Nota:** El archivo `.env` está en `.gitignore` y no se subirá al repositorio. Usa `.env.example` como plantilla.
+
+---
+
+## 4. Sistema de Autenticación
+
+### Login
+
+El sistema de autenticación utiliza:
+- **SecureStore** para almacenar tokens de forma segura
+- **AsyncStorage** para datos de usuario no sensibles
+- **Context API** para estado global de autenticación
+
+### Ejemplo de uso:
+
+```typescript
+import { useAuth } from '@/src/context/AuthContext';
+
+const MyComponent = () => {
+  const { user, login, logout, isAuthenticated } = useAuth();
+  
+  // ...
+};
+```
+
+---
+
+## 5. Sistema de Roles y Permisos
+
+### Roles Disponibles
+
+- **Administrador**: Acceso completo
+- **Vendedor**: Acceso a ventas y clientes
+- **Operador**: Acceso a producción
+
+### Verificación de Permisos
+
+```typescript
+import { canAccessSales, canAccessProduction } from '@/src/utils/permissions';
+
+const { user } = useAuth();
+
+if (canAccessSales(user)) {
+  // Mostrar módulo de ventas
+}
+```
+
+---
+
+## 6. API Reference
+
+### 📚 Swagger Documentation
+
+**Backend Swagger URL**: `https://nutregam-api.azurewebsites.net/api/swagger/ui`
+
+### Endpoints Disponibles
+
+#### Autenticación
+- `POST /auth/login` - Login de usuario
+- `POST /auth/logout` - Cerrar sesión
+- `POST /auth/change-password` - Cambiar contraseña
+
+#### Ventas
+- `GET /sales` - Listar ventas
+- `GET /sales/:id` - Detalle de venta
+- `POST /sales` - Crear venta
+- `PUT /sales/:id` - Actualizar venta
+- `DELETE /sales/:id` - Eliminar venta
+
+#### Producción
+- `GET /production-reports` - Listar reportes
+- `GET /production-reports/:id` - Detalle de reporte
+- `POST /production-reports` - Crear reporte
+- `PUT /production-reports/:id` - Actualizar reporte
+- `DELETE /production-reports/:id` - Eliminar reporte
+
+---
+
+## 7. Módulo de Ventas
+
+### Características
+- Listado de ventas con paginación
+- Crear nuevas ventas
+- Ver detalles de ventas
+- Filtros por estado de pago
+
+### Pantallas
+- `SalesListScreen` - Lista de ventas
+- `CreateSaleScreen` - Crear venta (pendiente)
+- `SaleDetailScreen` - Detalle de venta (pendiente)
+
+---
+
+## 8. Módulo de Producción
+
+### Características
+- Listado de reportes de producción
+- Crear nuevos reportes
+- Ver detalles de reportes
+- Cálculo de eficiencia
+
+### Pantallas
+- `ProductionListScreen` - Lista de reportes
+- `CreateProductionScreen` - Crear reporte (pendiente)
+- `ProductionDetailScreen` - Detalle de reporte (pendiente)
+
+---
+
+## 9. Sistema de Diseño
+
+### 🎨 Paleta de Colores
+
+- **Primario**: `#006A4E` (Verde Nutregam)
+- **Éxito**: `#10B981`
+- **Advertencia**: `#F59E0B`
+- **Error**: `#EF4444`
+- **Info**: `#3B82F6`
+
+Ver `src/constants/colors.ts` para la paleta completa.
+
+---
+
+## 10. Componentes Reutilizables
+
+### Button
+```typescript
+<Button
+  title="Guardar"
+  onPress={handleSave}
+  variant="primary"
+  size="md"
+  isLoading={false}
+/>
+```
+
+### Input
+```typescript
+<Input
+  label="Email"
+  placeholder="tu@email.com"
+  value={email}
+  onChangeText={setEmail}
+  error={errors.email}
+  required
+/>
+```
+
+### Card
+```typescript
+<Card>
+  <Text>Contenido</Text>
+</Card>
+```
+
+---
+
+## 11. Navegación
+
+La aplicación utiliza **Expo Router** para la navegación. Las rutas están protegidas según los permisos del usuario.
+
+### Estructura de Navegación
+- `/login` - Pantalla de login
+- `/(tabs)/sales` - Módulo de ventas
+- `/(tabs)/production` - Módulo de producción
+- `/(tabs)/profile` - Perfil de usuario
+
+---
+
+## 12. Manejo de Estado
+
+### Context API
+- `AuthContext` - Estado de autenticación
+
+### Zustand (Opcional)
+Para estado más complejo, se puede usar Zustand. Ver `src/stores/` para ejemplos.
+
+---
+
+## 13. Almacenamiento Local
+
+### SecureStore
+- Tokens de autenticación
+
+### AsyncStorage
+- Datos de usuario
+- Caché de datos
+
+---
+
+## 14. Ejemplos de Integración
+
+### Crear una nueva venta
+
+```typescript
+import { salesAPI } from '@/src/api/sales.api';
+
+const createSale = async () => {
+  try {
+    const sale = await salesAPI.createSale({
+      id_customer: 1,
+      sale_date: new Date().toISOString(),
+      payment_status: 'pending',
+      payment_method: 'cash',
+      items: [
+        { id_product: 1, quantity: 10, unit_price: 1000 }
+      ]
+    });
+    console.log('Venta creada:', sale);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
+```
+
+---
+
+## 15. Mejores Prácticas
+
+### Checklist de Desarrollo
+
+1. **Seguridad:**
+   - Usar SecureStore para tokens
+   - Validar inputs en cliente y servidor
+   - Nunca almacenar contraseñas en texto plano
+
+2. **Performance:**
+   - Usar FlatList para listas largas
+   - Implementar paginación
+   - Lazy loading de componentes
+
+3. **UX:**
+   - Feedback visual en todas las acciones
+   - Loading states
+   - Error handling
+
+4. **Código:**
+   - TypeScript estricto
+   - Componentes reutilizables
+   - Separación de concerns
+
+---
+
+## 16. Testing
+
+### 🧪 Testing con Jest
+
+```bash
+npm test
+```
+
+Ejemplo de test:
+```typescript
+import { render, fireEvent } from '@testing-library/react-native';
+import LoginScreen from '@/src/screens/auth/LoginScreen';
+
+describe('LoginScreen', () => {
+  it('should render correctly', () => {
+    const { getByPlaceholderText } = render(<LoginScreen />);
+    expect(getByPlaceholderText('Email')).toBeTruthy();
+  });
+});
+```
+
+---
+
+## 17. Deployment
+
+### Build con EAS
+
+```bash
+# Instalar EAS CLI
+npm install -g eas-cli
+
+# Login
+eas login
+
+# Build para Android
+eas build --platform android
+
+# Build para iOS
+eas build --platform ios
+```
+
+---
+
+## 🆘 Soporte y Contacto
+
+Para dudas o problemas técnicos:
+1. Consultar Swagger del backend
+2. Revisar logs de la consola
+3. Documentación de Expo/React Native
+
+---
+
+**Versión:** 1.0.0  
+**Última actualización:** Enero 2026  
+**Desarrollado para:** Nutregam - Sistema de Gestión de Producción y Ventas

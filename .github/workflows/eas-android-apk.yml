@@ -1,0 +1,60 @@
+name: EAS Android APK
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+env:
+  API_URL: ${{ secrets.API_URL }}
+  API_TIMEOUT: ${{ secrets.API_TIMEOUT }}
+  ADMIN_DASHBOARD_URL: ${{ secrets.ADMIN_DASHBOARD_URL }}
+  APP_NAME: ${{ secrets.APP_NAME }}
+  APP_VERSION: ${{ secrets.APP_VERSION }}
+  AUTO_REFRESH_INTERVAL: ${{ secrets.AUTO_REFRESH_INTERVAL }}
+  DEFAULT_PAGE_SIZE: ${{ secrets.DEFAULT_PAGE_SIZE }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required secrets
+        run: |
+          missing=""
+          [ -z "${{ secrets.EXPO_TOKEN }}" ] && missing="$missing EXPO_TOKEN"
+          [ -z "${{ secrets.API_URL }}" ] && missing="$missing API_URL"
+          [ -z "${{ secrets.API_TIMEOUT }}" ] && missing="$missing API_TIMEOUT"
+          [ -z "${{ secrets.ADMIN_DASHBOARD_URL }}" ] && missing="$missing ADMIN_DASHBOARD_URL"
+          [ -z "${{ secrets.APP_NAME }}" ] && missing="$missing APP_NAME"
+          [ -z "${{ secrets.APP_VERSION }}" ] && missing="$missing APP_VERSION"
+          [ -z "${{ secrets.AUTO_REFRESH_INTERVAL }}" ] && missing="$missing AUTO_REFRESH_INTERVAL"
+          [ -z "${{ secrets.DEFAULT_PAGE_SIZE }}" ] && missing="$missing DEFAULT_PAGE_SIZE"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing required secrets:$missing"
+            exit 1
+          fi
+          echo "All required secrets are configured"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build APK
+        run: eas build -p android --profile preview --non-interactive
