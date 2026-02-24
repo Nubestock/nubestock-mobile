@@ -1,34 +1,34 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  Image,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useThemeColors } from '../../constants/colors';
-import Input from '../../components/common/Input';
-import Button from '../../components/common/Button';
-import Loading from '../../components/common/Loading';
-import Card from '../../components/common/Card';
-import { productsAPI } from '../../api/products.api';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { getErrorMessage } from '../../api/client';
 import { productionAPI } from '../../api/production.api';
+import { productsAPI } from '../../api/products.api';
+import Button from '../../components/common/Button';
+import Card from '../../components/common/Card';
+import Input from '../../components/common/Input';
+import Loading from '../../components/common/Loading';
+import { useThemeColors } from '../../constants/colors';
+import { useProtectedRoute } from '../../hooks/useProtectedRoute';
 import { ProductWithRecipe } from '../../types/product.types';
 import {
+  InsufficientMaterial,
   ProductRecipe,
   RegisterMaterialsRequest,
   RegisterMaterialsResponse,
-  InsufficientMaterial,
 } from '../../types/production.types';
-import { getErrorMessage } from '../../api/client';
-import { useProtectedRoute } from '../../hooks/useProtectedRoute';
 
 interface MaterialData {
   id_product: number;
@@ -373,7 +373,7 @@ const CreateProductionScreen = () => {
           id_product: material.id,
           quantity_used: Number.parseFloat(materialData.quantity_used),
           waste: Number.parseFloat(materialData.waste || '0'),
-          details: materialData.photo || null,
+          ...(materialData.photo ? { details: materialData.photo } : {}),
         };
       });
 
