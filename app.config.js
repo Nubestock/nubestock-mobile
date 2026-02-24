@@ -8,7 +8,7 @@ const resolvedGoogleServicesFile = path.resolve(__dirname, googleServicesFile);
 
 module.exports = {
   expo: {
-    name: 'nubestock-mobile',
+    name: 'Nubestock',
     slug: 'nubestock-mobile',
     version: '1.0.0',
     orientation: 'portrait',
