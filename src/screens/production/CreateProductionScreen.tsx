@@ -186,10 +186,21 @@ const CreateProductionScreen = () => {
     }
   };
 
-  const handleMaterialQuantityChange = (materialId: number, value: string) => {
-    const cleaned = value.replace(/[^0-9.]/g, '');
+  const formatDecimalInput = (value: string): string => {
+    // Reemplazar coma por punto (para países que usan coma como separador decimal)
+    let cleaned = value.replace(/,/g, '.');
+    // Permitir solo números y punto
+    cleaned = cleaned.replace(/[^0-9.]/g, '');
+    // Asegurar solo un punto decimal
     const parts = cleaned.split('.');
-    const formatted = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+    if (parts.length > 2) {
+      cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+    return cleaned;
+  };
+
+  const handleMaterialQuantityChange = (materialId: number, value: string) => {
+    const formatted = formatDecimalInput(value);
     
     setMaterialsData((prev) => ({
       ...prev,
@@ -210,9 +221,7 @@ const CreateProductionScreen = () => {
   };
 
   const handleMaterialWasteChange = (materialId: number, value: string) => {
-    const cleaned = value.replace(/[^0-9.]/g, '');
-    const parts = cleaned.split('.');
-    const formatted = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleaned;
+    const formatted = formatDecimalInput(value);
     
     setMaterialsData((prev) => ({
       ...prev,
@@ -615,10 +624,10 @@ const CreateProductionScreen = () => {
                   <View style={styles.materialInputsContainer}>
                     <Input
                       label="Cantidad Usada"
-                      placeholder="0"
+                      placeholder="0.00"
                       value={materialData.quantity_used}
                       onChangeText={(text) => handleMaterialQuantityChange(material.id, text)}
-                      keyboardType="decimal-pad"
+                      keyboardType="numeric"
                       error={errors[`material_${material.id}_quantity`]}
                       required
                       style={styles.materialInput}
@@ -626,10 +635,10 @@ const CreateProductionScreen = () => {
 
                     <Input
                       label="Desperdicio (opcional)"
-                      placeholder="0"
+                      placeholder="0.00"
                       value={materialData.waste}
                       onChangeText={(text) => handleMaterialWasteChange(material.id, text)}
-                      keyboardType="decimal-pad"
+                      keyboardType="numeric"
                       error={errors[`material_${material.id}_waste`]}
                       style={styles.materialInput}
                     />
