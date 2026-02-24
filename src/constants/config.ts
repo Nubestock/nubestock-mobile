@@ -10,6 +10,9 @@ export const API_CONFIG = {
   // URL del backend Azure Functions (desde .env)
   BASE_URL: getEnvVar('apiUrl', 'https://nutregam-api.azurewebsites.net/api'),
   
+  // Código de autenticación para Azure Functions (desde .env)
+  API_CODE: getEnvVar('apiUrlCode', ''),
+  
   // Timeout en milisegundos (desde .env)
   TIMEOUT: Number.parseInt(getEnvVar('apiTimeout', '30000'), 10),
   

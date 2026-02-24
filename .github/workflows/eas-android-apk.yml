@@ -11,6 +11,7 @@ on:
 
 env:
   API_URL: ${{ secrets.API_URL }}
+  API_URL_CODE: ${{ secrets.API_URL_CODE }}
   API_TIMEOUT: ${{ secrets.API_TIMEOUT }}
   ADMIN_DASHBOARD_URL: ${{ secrets.ADMIN_DASHBOARD_URL }}
   APP_NAME: ${{ secrets.APP_NAME }}
@@ -27,6 +28,7 @@ jobs:
           missing=""
           [ -z "${{ secrets.EXPO_TOKEN }}" ] && missing="$missing EXPO_TOKEN"
           [ -z "${{ secrets.API_URL }}" ] && missing="$missing API_URL"
+          [ -z "${{ secrets.API_URL_CODE }}" ] && missing="$missing API_URL_CODE"
           [ -z "${{ secrets.API_TIMEOUT }}" ] && missing="$missing API_TIMEOUT"
           [ -z "${{ secrets.ADMIN_DASHBOARD_URL }}" ] && missing="$missing ADMIN_DASHBOARD_URL"
           [ -z "${{ secrets.APP_NAME }}" ] && missing="$missing APP_NAME"
@@ -59,6 +61,7 @@ jobs:
       - name: Sync secrets to EAS
         run: |
           eas env:create --scope project --name API_URL --value "${{ secrets.API_URL }}" --visibility plaintext --environment production --non-interactive --force || true
+          eas env:create --scope project --name API_URL_CODE --value "${{ secrets.API_URL_CODE }}" --visibility sensitive --environment production --non-interactive --force || true
           eas env:create --scope project --name API_TIMEOUT --value "${{ secrets.API_TIMEOUT }}" --visibility plaintext --environment production --non-interactive --force || true
           eas env:create --scope project --name ADMIN_DASHBOARD_URL --value "${{ secrets.ADMIN_DASHBOARD_URL }}" --visibility plaintext --environment production --non-interactive --force || true
           eas env:create --scope project --name APP_NAME --value "${{ secrets.APP_NAME }}" --visibility plaintext --environment production --non-interactive --force || true

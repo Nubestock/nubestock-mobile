@@ -62,6 +62,7 @@ module.exports = {
         projectId: 'be7fddbc-a563-4a79-9677-12c31300fae7',
       },
       apiUrl: process.env.API_URL || 'https://nutregam-api.azurewebsites.net/api',
+      apiUrlCode: process.env.API_URL_CODE || '',
       apiTimeout: process.env.API_TIMEOUT || '30000',
       appName: process.env.APP_NAME || 'Nutregam',
       appVersion: process.env.APP_VERSION || '1.0.0',

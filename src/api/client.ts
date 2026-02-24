@@ -9,13 +9,21 @@ const apiClient: AxiosInstance = axios.create({
   headers: API_CONFIG.HEADERS,
 });
 
-// Interceptor de Request - Agregar token
+// Interceptor de Request - Agregar token y code
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const token = await getStoredToken();
     
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Agregar code de Azure Functions si está configurado
+    if (API_CONFIG.API_CODE) {
+      config.params = {
+        ...config.params,
+        code: API_CONFIG.API_CODE,
+      };
     }
     
     console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
