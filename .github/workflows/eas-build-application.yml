@@ -10,17 +10,50 @@ on:
     branches:
       - develop
   workflow_dispatch:
+    inputs:
+      platform:
+        description: "Plataforma a compilar"
+        required: true
+        type: choice
+        default: android
+        options:
+          - android
+          - ios
+      eas_profile:
+        description: "Perfil EAS"
+        required: true
+        type: choice
+        default: preview
+        options:
+          - preview
+          - production
+      run_sonar:
+        description: "Ejecutar análisis Sonar"
+        required: false
+        type: boolean
+        default: true
 
 jobs:
-  build_android:
+  build:
     uses: Nubestock/nubestock-workflows/.github/workflows/eas-build-application.yml@master
     permissions:
       contents: read
     with:
       node_version: "20"
-      eas_profile: "preview"
-      platform: "android"
+      eas_profile: ${{ github.event_name == 'workflow_dispatch' && inputs.eas_profile || 'preview' }}
+      platform: ${{ github.event_name == 'workflow_dispatch' && inputs.platform || 'android' }}
+      run_sonar: ${{ github.event_name != 'workflow_dispatch' || inputs.run_sonar }}
     secrets:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      API_URL: ${{ secrets.API_URL }}
+      API_URL_CODE: ${{ secrets.API_URL_CODE }}
+      API_TIMEOUT: ${{ secrets.API_TIMEOUT }}
+      ADMIN_DASHBOARD_URL: ${{ secrets.ADMIN_DASHBOARD_URL }}
+      APP_NAME: ${{ secrets.APP_NAME }}
+      APP_VERSION: ${{ secrets.APP_VERSION }}
+      AUTO_REFRESH_INTERVAL: ${{ secrets.AUTO_REFRESH_INTERVAL }}
+      DEFAULT_PAGE_SIZE: ${{ secrets.DEFAULT_PAGE_SIZE }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       API_URL: ${{ secrets.API_URL }}
       API_URL_CODE: ${{ secrets.API_URL_CODE }}
