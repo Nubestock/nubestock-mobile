@@ -1,0 +1,32 @@
+# EAS Build Application — delega en el workflow reutilizable de nubestock-workflows
+# Android por defecto; para iOS añadir otro job con platform: ios
+name: EAS Build Application
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build_android:
+    uses: Nubestock/nubestock-workflows/.github/workflows/eas-build-application.yml@master
+    permissions:
+      contents: read
+    with:
+      node_version: "20"
+      eas_profile: "preview"
+      platform: "android"
+    secrets:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      API_URL: ${{ secrets.API_URL }}
+      API_URL_CODE: ${{ secrets.API_URL_CODE }}
+      API_TIMEOUT: ${{ secrets.API_TIMEOUT }}
+      ADMIN_DASHBOARD_URL: ${{ secrets.ADMIN_DASHBOARD_URL }}
+      APP_NAME: ${{ secrets.APP_NAME }}
+      APP_VERSION: ${{ secrets.APP_VERSION }}
+      AUTO_REFRESH_INTERVAL: ${{ secrets.AUTO_REFRESH_INTERVAL }}
+      DEFAULT_PAGE_SIZE: ${{ secrets.DEFAULT_PAGE_SIZE }}
