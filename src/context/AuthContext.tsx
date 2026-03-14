@@ -113,15 +113,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         permissions: decodedToken?.permissions || newUser.permissions || [],
       };
 
-      // Si es administrador, debe usar el botón "Login de administrador" (WebView del dashboard)
-      if (isAdminUser(userWithJWTData)) {
-        const err = new Error(
-          'Los administradores deben iniciar sesión desde el botón "Login de administrador" para gestionar todo desde ahí.'
-        ) as Error & { code?: string };
-        err.code = ADMIN_MUST_USE_ADMIN_ENTRY;
-        throw err;
-      }
-      
+      // Admin y resto de usuarios: mismo flujo; la redirección según rol la hace AuthGuard
       // Guardar en estado y storage
       setToken(newToken);
       setUser(userWithJWTData);

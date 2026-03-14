@@ -1,5 +1,22 @@
 import { User } from '../types/auth.types';
-import { SYSTEM_PERMISSIONS } from '../constants/permissions';
+import { SYSTEM_PERMISSIONS, UserRole } from '../constants/permissions';
+
+/**
+ * Verifica si el usuario tiene acceso al dashboard de administrador (rol Admin o permiso admin)
+ */
+export const canAccessAdmin = (user: User | null): boolean => {
+  if (!user) return false;
+  const roles = user.roles || [];
+  const permissions = user.permissions || [];
+  return (
+    roles.some(
+      (r) =>
+        r === UserRole.ADMINISTRADOR ||
+        r.toLowerCase() === 'admin' ||
+        r.toLowerCase() === 'administrador'
+    ) || permissions.includes('admin')
+  );
+};
 
 /**
  * Verifica si el usuario tiene un permiso específico del sistema

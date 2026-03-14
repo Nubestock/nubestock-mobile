@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRouter, useSegments, usePathname } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
-import { canAccessSales, canAccessProduction } from '../../utils/permissions';
+import { canAccessSales, canAccessProduction, canAccessAdmin } from '../../utils/permissions';
 import Loading from '../common/Loading';
 
 interface AuthGuardProps {
@@ -31,9 +31,11 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     }
 
     // Si está autenticado y está en login, redirigir según permisos
-    // Priorizar producción para operadores, luego ventas, luego perfil
+    // Admin → dashboard admin (WebView); luego producción, ventas, perfil
     if (isAuthenticated && isLoginRoute && user) {
-      if (canAccessProduction(user)) {
+      if (canAccessAdmin(user)) {
+        router.replace('/(tabs)/admin');
+      } else if (canAccessProduction(user)) {
         router.replace('/(tabs)/production');
       } else if (canAccessSales(user)) {
         router.replace('/(tabs)/sales');

@@ -1,8 +1,11 @@
 import * as Yup from 'yup';
 
+// Patrón permisivo: acepta emails con múltiples puntos en la parte local (ej. jeremy.eoon.q@outlook.com)
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const loginSchema = Yup.object().shape({
   email: Yup.string()
-    .email('Email inválido')
+    .matches(EMAIL_REGEX, 'Email inválido')
     .required('El email es requerido'),
   password: Yup.string()
     .min(6, 'La contraseña debe tener al menos 6 caracteres')

@@ -16,6 +16,12 @@ describe('validation', () => {
       ).resolves.toEqual({ email: 'test@example.com', password: '123456' });
     });
 
+    it('valida email con varios puntos en la parte local', async () => {
+      await expect(
+        loginSchema.validate({ email: 'jeremy.eoon.q@outlook.com', password: '123456' })
+      ).resolves.toEqual({ email: 'jeremy.eoon.q@outlook.com', password: '123456' });
+    });
+
     it('rechaza email inválido', async () => {
       await expect(
         loginSchema.validate({ email: 'invalid', password: '123456' })

@@ -7,12 +7,10 @@ import {
   Platform,
   ScrollView,
   Alert,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { useFormik } from 'formik';
-import { useAuth, ADMIN_MUST_USE_ADMIN_ENTRY } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { loginSchema } from '../../utils/validation';
 import { getErrorMessage } from '../../api/client';
 import Input from '../../components/common/Input';
@@ -20,7 +18,6 @@ import Button from '../../components/common/Button';
 import { useThemeColors } from '../../constants/colors';
 
 const LoginScreen = () => {
-  const router = useRouter();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const colors = useThemeColors();
@@ -39,17 +36,7 @@ const LoginScreen = () => {
         // El AuthGuard se encargará de redirigir según los permisos
         // No necesitamos redirigir manualmente aquí
       } catch (error: unknown) {
-        const err = error as Error & { code?: string };
-        if (err.code === ADMIN_MUST_USE_ADMIN_ENTRY) {
-          Alert.alert(
-            'Inicio de sesión de administrador',
-            err.message ||
-              'Los administradores deben iniciar sesión desde el botón "Login de administrador" para gestionar todo desde ahí.',
-            [{ text: 'Entendido' }]
-          );
-        } else {
-          Alert.alert('Error', getErrorMessage(error));
-        }
+        Alert.alert('Error', getErrorMessage(error));
       } finally {
         setIsLoading(false);
       }
@@ -104,12 +91,6 @@ const LoginScreen = () => {
             isLoading={isLoading}
             style={styles.submitButton}
           />
-          <Button
-            title="Login de administrador"
-            onPress={() => router.push('/(tabs)/admin')}
-            variant="outline"
-            style={styles.adminButton}
-          />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -151,9 +132,6 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
   },
   submitButton: {
     marginTop: 8,
-  },
-  adminButton: {
-    marginTop: 12,
   },
 });
 

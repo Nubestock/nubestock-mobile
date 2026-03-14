@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/context/AuthContext';
-import { canAccessSales, canAccessProduction, canAccessProducts, canAccessCustomers } from '@/src/utils/permissions';
+import { canAccessSales, canAccessProduction, canAccessProducts, canAccessCustomers, canAccessAdmin } from '@/src/utils/permissions';
 import { useThemeColors } from '@/src/constants/colors';
 
 export default function TabLayout() {
@@ -88,8 +88,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="admin"
         options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
+          title: 'Admin',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="shield-checkmark-outline" size={size} color={color} />
+          ),
+          href: canAccessAdmin(user) ? undefined : null,
         }}
       />
       
