@@ -1,5 +1,5 @@
-import { Tabs, useSegments, usePathname } from 'expo-router';
-import React, { useMemo } from 'react';
+import { Tabs, useSegments, usePathname, useRouter } from 'expo-router';
+import React, { useMemo, useEffect } from 'react';
 import { ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/context/AuthContext';
@@ -8,9 +8,20 @@ import { useThemeColors } from '@/src/constants/colors';
 
 export default function TabLayout() {
   const { user } = useAuth();
+  const router = useRouter();
   const segments = useSegments();
   const pathname = usePathname();
   const COLORS = useThemeColors();
+  const isAdminOnly = canAccessAdmin(user);
+
+  // Admin solo debe ver la pestaña Admin: si está en otra tab, redirigir a admin
+  useEffect(() => {
+    if (!isAdminOnly || !user) return;
+    const onAdminRoute = pathname.startsWith('/admin') || (segments as string[]).includes('admin');
+    if (!onAdminRoute) {
+      router.replace('/(tabs)/admin');
+    }
+  }, [isAdminOnly, user, pathname, segments, router]);
 
   // Ocultar tab bar cuando estamos en sub-rutas (ej: sales/create)
   // Las rutas principales de tabs son: sales, products, production, profile
@@ -22,15 +33,11 @@ export default function TabLayout() {
   const isMainTabRoute = isInTabs && mainTabRoutes.includes(currentRoute);
   const segmentList = segments as string[];
   const isAdminRoute = pathname.startsWith('/admin') || segmentList.includes('admin');
-  console.log('pathname', pathname);
-  console.log('segmentList', segmentList);
-  console.log('isAdminRoute', isAdminRoute);
-  const shouldHideTabBar = !isMainTabRoute || isAdminRoute;
-  console.log('shouldHideTabBar', shouldHideTabBar);
+  // Admin: tab bar siempre oculta, solo ve la vista del dashboard (WebView)
+  const shouldHideTabBar = isAdminOnly || !isMainTabRoute || isAdminRoute;
   const tabBarStyle = useMemo(() => {
     if (!shouldHideTabBar) return undefined;
-    const hiddenStyle: ViewStyle = { display: 'none' };
-    return hiddenStyle;
+    return { display: 'none' } as ViewStyle;
   }, [shouldHideTabBar]);
 
   return (
@@ -48,7 +55,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cog-outline" size={size} color={color} />
           ),
-          href: canAccessProduction(user) ? undefined : null, // Ocultar si no tiene acceso
+          href: isAdminOnly ? null : (canAccessProduction(user) ? undefined : null),
         }}
       />
       
@@ -59,7 +66,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cart-outline" size={size} color={color} />
           ),
-          href: canAccessSales(user) ? undefined : null, // Ocultar si no tiene acceso
+          href: isAdminOnly ? null : (canAccessSales(user) ? undefined : null),
         }}
       />
       
@@ -70,7 +77,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cube-outline" size={size} color={color} />
           ),
-          href: canAccessProducts(user) ? undefined : null, // Ocultar si no tiene acceso
+          href: isAdminOnly ? null : (canAccessProducts(user) ? undefined : null),
         }}
       />
 
@@ -81,7 +88,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
-          href: canAccessCustomers(user) ? undefined : null, // Ocultar si no tiene acceso
+          href: isAdminOnly ? null : (canAccessCustomers(user) ? undefined : null),
         }}
       />
 
@@ -103,6 +110,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),
+          href: isAdminOnly ? null : undefined,
         }}
       />
       

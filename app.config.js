@@ -41,6 +41,17 @@ module.exports = {
       'expo-router',
       'expo-notifications',
       [
+        'expo-build-properties',
+        {
+          android: {
+            // Solo arm64-v8a: APK más pequeño (~50% menos). Casi todos los móviles actuales son 64-bit.
+            buildArchs: ['arm64-v8a'],
+            // Comprimir libs nativas en el APK (APK más pequeño, arranque ligeramente más lento)
+            useLegacyPackaging: true,
+          },
+        },
+      ],
+      [
         'expo-splash-screen',
         {
           image: './assets/images/splash-icon.png',

@@ -8,11 +8,13 @@ import Constants from 'expo-constants';
 import { WebView } from 'react-native-webview';
 import { useThemeColors } from '../../constants/colors';
 import { useAuth } from '../../context/AuthContext';
+import { canAccessAdmin } from '../../utils/permissions';
 
 const AdminWebViewScreen = () => {
   const router = useRouter();
   const navigation = useNavigation();
-  const { token } = useAuth();
+  const { user, token, logout } = useAuth();
+  const isAdminOnly = canAccessAdmin(user);
   const colors = useThemeColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -38,12 +40,24 @@ const AdminWebViewScreen = () => {
     return `${baseAdminUrl}${separator}mobile_token=${encodeURIComponent(token)}`;
   }, [baseAdminUrl, token]);
 
+  const handleExit = () => {
+    if (isAdminOnly) {
+      logout().then(() => router.replace('/login'));
+    } else {
+      router.back();
+    }
+  };
+
   if (!baseAdminUrl) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.TEXT_PRIMARY} />
+          <TouchableOpacity onPress={handleExit} style={styles.backButton}>
+            {isAdminOnly ? (
+              <Ionicons name="log-out-outline" size={24} color={colors.TEXT_PRIMARY} />
+            ) : (
+              <Ionicons name="arrow-back" size={24} color={colors.TEXT_PRIMARY} />
+            )}
           </TouchableOpacity>
           <Text style={styles.title}>Administrador</Text>
           <View style={styles.placeholder} />
@@ -62,8 +76,12 @@ const AdminWebViewScreen = () => {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.TEXT_PRIMARY} />
+          <TouchableOpacity onPress={handleExit} style={styles.backButton}>
+            {isAdminOnly ? (
+              <Ionicons name="log-out-outline" size={24} color={colors.TEXT_PRIMARY} />
+            ) : (
+              <Ionicons name="arrow-back" size={24} color={colors.TEXT_PRIMARY} />
+            )}
           </TouchableOpacity>
           <Text style={styles.title}>Administrador</Text>
           <View style={styles.placeholder} />
@@ -81,11 +99,21 @@ const AdminWebViewScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.TEXT_PRIMARY} />
+        <TouchableOpacity onPress={handleExit} style={styles.backButton}>
+          {isAdminOnly ? (
+            <Ionicons name="log-out-outline" size={24} color={colors.TEXT_PRIMARY} />
+          ) : (
+            <Ionicons name="arrow-back" size={24} color={colors.TEXT_PRIMARY} />
+          )}
         </TouchableOpacity>
         <Text style={styles.title}>Administrador</Text>
-        <View style={styles.placeholder} />
+        <View style={styles.placeholder}>
+          {isAdminOnly && (
+            <Text style={[styles.logoutLabel, { color: colors.TEXT_SECONDARY }]} numberOfLines={1}>
+              Cerrar sesión
+            </Text>
+          )}
+        </View>
       </View>
       <WebView
         source={{ uri: adminUrl }}
@@ -124,6 +152,10 @@ const createStyles = (colors: ReturnType<typeof useThemeColors>) =>
     },
     placeholder: {
       width: 40,
+      alignItems: 'flex-end',
+    },
+    logoutLabel: {
+      fontSize: 12,
     },
     webview: {
       flex: 1,
