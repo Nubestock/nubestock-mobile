@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFormik } from 'formik';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, ADMIN_MUST_USE_ADMIN_ENTRY } from '../../context/AuthContext';
 import { loginSchema } from '../../utils/validation';
 import { getErrorMessage } from '../../api/client';
 import Input from '../../components/common/Input';
@@ -38,8 +38,18 @@ const LoginScreen = () => {
         await login(values);
         // El AuthGuard se encargará de redirigir según los permisos
         // No necesitamos redirigir manualmente aquí
-      } catch (error) {
-        Alert.alert('Error', getErrorMessage(error));
+      } catch (error: unknown) {
+        const err = error as Error & { code?: string };
+        if (err.code === ADMIN_MUST_USE_ADMIN_ENTRY) {
+          Alert.alert(
+            'Inicio de sesión de administrador',
+            err.message ||
+              'Los administradores deben iniciar sesión desde el botón "Login de administrador" para gestionar todo desde ahí.',
+            [{ text: 'Entendido' }]
+          );
+        } else {
+          Alert.alert('Error', getErrorMessage(error));
+        }
       } finally {
         setIsLoading(false);
       }

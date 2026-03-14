@@ -18,6 +18,23 @@ import {
 } from '../utils/storage';
 import { decodeJWT } from '../utils/jwt';
 import { registerDeviceForPushNotifications } from '../utils/notifications';
+import { UserRole } from '../constants/permissions';
+
+/** Error lanzado cuando un administrador intenta entrar por el login normal */
+export const ADMIN_MUST_USE_ADMIN_ENTRY = 'ADMIN_MUST_USE_ADMIN_ENTRY';
+
+function isAdminUser(user: User): boolean {
+  const roles = user.roles || [];
+  const permissions = user.permissions || [];
+  return (
+    roles.some(
+      (r) =>
+        r === UserRole.ADMINISTRADOR ||
+        r.toLowerCase() === 'admin' ||
+        r.toLowerCase() === 'administrador'
+    ) || permissions.includes('admin')
+  );
+}
 
 interface AuthContextType {
   user: User | null;
@@ -95,6 +112,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         rolesDetails: decodedToken?.rolesDetails || newUser.rolesDetails || [],
         permissions: decodedToken?.permissions || newUser.permissions || [],
       };
+
+      // Si es administrador, debe usar el botón "Login de administrador" (WebView del dashboard)
+      if (isAdminUser(userWithJWTData)) {
+        const err = new Error(
+          'Los administradores deben iniciar sesión desde el botón "Login de administrador" para gestionar todo desde ahí.'
+        ) as Error & { code?: string };
+        err.code = ADMIN_MUST_USE_ADMIN_ENTRY;
+        throw err;
+      }
       
       // Guardar en estado y storage
       setToken(newToken);
