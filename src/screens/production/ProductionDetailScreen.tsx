@@ -145,16 +145,18 @@ const ProductionDetailScreen = () => {
               <Ionicons name="person-outline" size={16} color={colors.TEXT_SECONDARY} />
               <Text style={styles.infoText}>{item.user_name || 'Usuario'}</Text>
             </View>
-            {item.category_name && (
+            {item.category_name ? (
               <View style={styles.infoRow}>
                 <Ionicons name="pricetag-outline" size={16} color={colors.TEXT_SECONDARY} />
                 <Text style={styles.infoText}>{item.category_name}</Text>
-              </View)}
-            {item.sku && (
+              </View>
+            ) : null}
+            {item.sku ? (
               <View style={styles.infoRow}>
                 <Ionicons name="barcode-outline" size={16} color={colors.TEXT_SECONDARY} />
                 <Text style={styles.infoText}>{item.sku}</Text>
-              </View)}
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.metricsRow}>
@@ -166,12 +168,12 @@ const ProductionDetailScreen = () => {
               <Text style={styles.metricLabel}>Consumido</Text>
               <Text style={styles.metricValue}>{totalConsumed.toFixed(2)}</Text>
             </View>
-            {totalWaste > 0 && (
+            {totalWaste > 0 ? (
               <View style={styles.metric}>
                 <Text style={styles.metricLabel}>Desperdicio</Text>
                 <Text style={[styles.metricValue, styles.wasteValue]}>{totalWaste.toFixed(2)}</Text>
               </View>
-            )}
+            ) : null}
           </View>
         </View>
       </ScrollView>
