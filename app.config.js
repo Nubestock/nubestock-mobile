@@ -6,11 +6,15 @@ require('dotenv').config();
 const googleServicesFile = process.env.GOOGLE_SERVICES_JSON || './google-services.json';
 const resolvedGoogleServicesFile = path.resolve(__dirname, googleServicesFile);
 
+// Una sola fuente de verdad: APP_VERSION (CI) o package.json (local)
+const pkg = require('./package.json');
+const appVersion = process.env.APP_VERSION || pkg.version;
+
 module.exports = {
   expo: {
     name: 'Nubestock',
     slug: 'nubestock-mobile',
-    version: '1.0.0',
+    version: appVersion,
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'nubestockmobile',
@@ -83,7 +87,7 @@ module.exports = {
       apiUrlCode: process.env.API_URL_CODE || '',
       apiTimeout: process.env.API_TIMEOUT || '30000',
       appName: process.env.APP_NAME || 'Nutregam',
-      appVersion: process.env.APP_VERSION || '1.0.0',
+      appVersion,
       autoRefreshInterval: process.env.AUTO_REFRESH_INTERVAL || '30000',
       defaultPageSize: process.env.DEFAULT_PAGE_SIZE || '20',
       adminDashboardUrl: process.env.ADMIN_DASHBOARD_URL || '',

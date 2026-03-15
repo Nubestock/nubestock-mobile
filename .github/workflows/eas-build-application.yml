@@ -39,7 +39,19 @@ on:
         default: true
 
 jobs:
+  version:
+    name: Compute app version
+    runs-on: ubuntu-latest
+    outputs:
+      app_version: ${{ steps.set_version.outputs.app_version }}
+    steps:
+      - name: Set version for this build
+        id: set_version
+        run: |
+          # Cada build tiene versión única: 1.0.<run_number> (ej: 1.0.45, 1.0.46)
+          echo "app_version=1.0.${{ github.run_number }}" >> $GITHUB_OUTPUT
   build:
+    needs: version
     uses: Nubestock/nubestock-workflows/.github/workflows/eas-build-application.yml@master
     permissions:
       contents: read
@@ -49,6 +61,7 @@ jobs:
       platform: ${{ github.event_name == 'workflow_dispatch' && inputs.platform || 'android' }}
       run_sonar: ${{ github.event_name == 'workflow_dispatch' && inputs.run_sonar || false }}
       run_eas_update: ${{ github.event_name == 'workflow_dispatch' && inputs.run_eas_update || (github.event_name == 'push') }}
+      app_version: ${{ needs.version.outputs.app_version }}
     secrets:
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       API_URL: ${{ secrets.API_URL }}
