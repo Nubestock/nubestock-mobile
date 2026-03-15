@@ -37,9 +37,16 @@ module.exports = {
       output: 'static',
       favicon: './assets/images/favicon.png',
     },
+    updates: {
+      url: 'https://u.expo.dev/be7fddbc-a563-4a79-9677-12c31300fae7',
+    },
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
     plugins: [
       'expo-router',
       'expo-notifications',
+      'expo-updates',
       [
         'expo-build-properties',
         {

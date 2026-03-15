@@ -5,6 +5,7 @@ import { PaperProvider } from 'react-native-paper';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useCheckForAppUpdate } from '@/src/hooks/useCheckForAppUpdate';
 import { AuthProvider } from '@/src/context/AuthContext';
 import { AuthGuard } from '@/src/components/auth/AuthGuard';
 
@@ -14,6 +15,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  useCheckForAppUpdate();
 
   return (
     <PaperProvider>
