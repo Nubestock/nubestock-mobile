@@ -89,6 +89,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (storedExpiresIn) {
           setExpiresIn(storedExpiresIn);
         }
+
+        // Actualizar token de push en el backend si cambió (reinstalación, etc.)
+        registerDeviceForPushNotifications().catch((error) => {
+          console.error('Error al registrar dispositivo al restaurar sesión (no crítico):', error);
+        });
       }
     } catch (error) {
       console.error('Error loading stored auth:', error);

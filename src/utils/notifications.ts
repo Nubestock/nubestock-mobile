@@ -57,8 +57,9 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 }
 
 /**
- * Obtiene el token del dispositivo para notificaciones push
- * @returns El token del dispositivo o null si no se puede obtener
+ * Obtiene el token de Expo Push (ExponentPushToken[...]) para enviar al backend.
+ * El backend enviará notificaciones vía API de Expo (exp.host), no Azure Notification Hub.
+ * @returns El Expo Push Token o null si no se puede obtener
  */
 export async function getDeviceToken(): Promise<string | null> {
   // En Expo Go, las notificaciones push no est?n soportadas
@@ -75,8 +76,16 @@ export async function getDeviceToken(): Promise<string | null> {
       return null;
     }
 
-    // Obtener el token nativo del dispositivo (FCM/APNs)
-    const tokenData = await Notifications.getDevicePushTokenAsync();
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    if (!projectId) {
+      console.warn('projectId (extra.eas.projectId) no configurado en app.config.js');
+      return null;
+    }
+
+    // Token Expo (ExponentPushToken[xxx]) para enviar vía API de Expo
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: String(projectId),
+    });
     return typeof tokenData?.data === 'string' ? tokenData.data : null;
   } catch (error: any) {
     // Manejar espec?ficamente el error de Expo Go
