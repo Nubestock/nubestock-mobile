@@ -83,8 +83,18 @@ jobs:
       - name: Detect workspace and scheme
         id: detect
         run: |
-          WORKSPACE=$(ls ios/*.xcworkspace 2>/dev/null | head -1)
+          # Solo directorios .xcworkspace; descartar "contents.xcworkspace" (archivo interno del bundle)
+          WORKSPACE=""
+          for d in ios/*.xcworkspace; do
+            [ -d "$d" ] && [ "$(basename "$d")" != "contents.xcworkspace" ] && WORKSPACE="$d" && break
+          done
+          [ -z "$WORKSPACE" ] && WORKSPACE=$(ls -d ios/*.xcworkspace 2>/dev/null | head -1)
           WORKSPACE_BASE=$(basename "$WORKSPACE")
+          # Si salió "contents.xcworkspace" (nombre inválido) usar el workspace del app si existe
+          if [ "$WORKSPACE_BASE" = "contents.xcworkspace" ] && [ -d "ios/nubestockmobile.xcworkspace" ]; then
+            WORKSPACE_BASE="nubestockmobile.xcworkspace"
+            WORKSPACE="ios/$WORKSPACE_BASE"
+          fi
           # Primer scheme listado (excluir Debug/Release que son build configs)
           RAW=$(xcodebuild -list -workspace "$WORKSPACE" 2>/dev/null | sed -n '/Schemes:/,/^$/p' | grep -E '^[[:space:]]+[A-Za-z]' | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           SCHEME="${RAW:-nubestockmobile}"
@@ -125,13 +135,13 @@ jobs:
         run: |
           cd ios
           SCHEME="${SCHEME:-nubestockmobile}"
-          xcodebuild -workspace ${{ steps.detect.outputs.workspace }} -scheme "$SCHEME" \
+          xcodebuild -workspace "${{ steps.detect.outputs.workspace }}" -scheme "$SCHEME" \
             -configuration Release -sdk iphoneos \
             -archivePath build/app.xcarchive \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
             PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
-            DEVELOPMENT_TEAM="" \
+            DEVELOPMENT_TEAM='' \
             archive
           cd ..
 
