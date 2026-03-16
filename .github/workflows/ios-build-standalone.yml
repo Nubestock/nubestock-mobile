@@ -85,7 +85,8 @@ jobs:
         run: |
           WORKSPACE=$(ls ios/*.xcworkspace 2>/dev/null | head -1)
           WORKSPACE_BASE=$(basename "$WORKSPACE")
-          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" 2>/dev/null | grep -A 100 "Schemes:" | grep -v "Schemes:" | sed 's/^[[:space:]]*//' | grep -v '^$' | head -1)
+          # Solo tomar líneas de la sección Schemes:; ignorar Build Configurations (Debug/Release)
+          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" 2>/dev/null | awk '/^[[:space:]]*Schemes:[[:space:]]*$/{p=1; next} p && /^[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*$/{gsub(/^[[:space:]]+|[[:space:]]+$/,""); if ($0 != "Debug" && $0 != "Release") { print; exit }}')
           echo "workspace=$WORKSPACE_BASE" >> $GITHUB_OUTPUT
           echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
           echo "Workspace: $WORKSPACE_BASE, Scheme: $SCHEME"
