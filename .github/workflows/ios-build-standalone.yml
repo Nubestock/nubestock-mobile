@@ -85,8 +85,12 @@ jobs:
         run: |
           WORKSPACE=$(ls ios/*.xcworkspace 2>/dev/null | head -1)
           WORKSPACE_BASE=$(basename "$WORKSPACE")
-          # Solo tomar líneas de la sección Schemes:; ignorar Build Configurations (Debug/Release)
-          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" 2>/dev/null | awk '/^[[:space:]]*Schemes:[[:space:]]*$/{p=1; next} p && /^[[:space:]]*[A-Za-z0-9_-]+[[:space:]]*$/{gsub(/^[[:space:]]+|[[:space:]]+$/,""); if ($0 != "Debug" && $0 != "Release") { print; exit }}')
+          # Primer scheme listado (excluir Debug/Release que son build configs)
+          RAW=$(xcodebuild -list -workspace "$WORKSPACE" 2>/dev/null | sed -n '/Schemes:/,/^$/p' | grep -E '^[[:space:]]+[A-Za-z]' | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          SCHEME="${RAW:-nubestockmobile}"
+          if [ "$RAW" = "Debug" ] || [ "$RAW" = "Release" ]; then
+            SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" 2>/dev/null | sed -n '/Schemes:/,/^$/p' | grep -E '^[[:space:]]+[A-Za-z]' | sed 's/^[[:space:]]*//' | grep -v -E '^(Debug|Release)$' | head -1 || echo "nubestockmobile")
+          fi
           echo "workspace=$WORKSPACE_BASE" >> $GITHUB_OUTPUT
           echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
           echo "Workspace: $WORKSPACE_BASE, Scheme: $SCHEME"
@@ -117,9 +121,11 @@ jobs:
         env:
           PROFILE_UUID: ${{ env.PROFILE_UUID }}
           SIGNING_IDENTITY: ${{ env.SIGNING_IDENTITY }}
+          SCHEME: ${{ steps.detect.outputs.scheme }}
         run: |
           cd ios
-          xcodebuild -workspace ${{ steps.detect.outputs.workspace }} -scheme ${{ steps.detect.outputs.scheme }} \
+          SCHEME="${SCHEME:-nubestockmobile}"
+          xcodebuild -workspace ${{ steps.detect.outputs.workspace }} -scheme "$SCHEME" \
             -configuration Release -sdk iphoneos \
             -archivePath build/app.xcarchive \
             CODE_SIGN_STYLE=Manual \
