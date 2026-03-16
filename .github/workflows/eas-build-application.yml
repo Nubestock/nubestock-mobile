@@ -3,12 +3,13 @@
 name: EAS Build Application
 
 on:
-  push:
-    branches:
-      - develop
-  pull_request:
-    branches:
-      - develop
+  # Desactivado temporalmente: probando solo IPA (iOS). Para volver a generar APK en push/PR, descomenta:
+  # push:
+  #   branches:
+  #     - develop
+  # pull_request:
+  #   branches:
+  #     - develop
   workflow_dispatch:
     inputs:
       platform:

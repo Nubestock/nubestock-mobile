@@ -1,0 +1,139 @@
+# Build iOS IPA sin EAS: usa .p12 y .mobileprovision desde secrets.
+# Requiere: runner macOS, secrets en base64 (ver README o comentarios abajo).
+name: iOS Build (standalone)
+
+on:
+  workflow_dispatch:
+    inputs:
+      export_method:
+        description: "Método de exportación del IPA"
+        required: true
+        type: choice
+        default: ad-hoc
+        options:
+          - development
+          - ad-hoc
+          - app-store
+          - enterprise
+
+env:
+  BUNDLE_ID: com.nubestock.mobile
+
+jobs:
+  build-ios:
+    name: Build IPA
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup iOS credentials
+        env:
+          IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD || 'build-keychain-secret' }}
+        run: |
+          set -e
+          mkdir -p build/credentials
+          echo "$IOS_CERTIFICATE_BASE64" | base64 --decode > build/credentials/dist-cert.p12
+          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > build/credentials/profile.mobileprovision
+
+          # Crear keychain temporal e importar certificado
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          security import build/credentials/dist-cert.p12 -k build.keychain -P "$IOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security || true
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain || true
+
+          # Instalar perfil de aprovisionamiento
+          PROFILE_UUID=$(security cms -D -i build/credentials/profile.mobileprovision 2>/dev/null | plutil -extract UUID raw -)
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp build/credentials/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/"$PROFILE_UUID.mobileprovision"
+          echo "PROFILE_UUID=$PROFILE_UUID" >> $GITHUB_ENV
+
+          # Identidad de firma (certificado del .p12)
+          SIGNING_IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep -E "Apple Distribution|iPhone Distribution" | head -1 | sed -E 's/.*\"([^\"]+)\".*/\1/')
+          echo "SIGNING_IDENTITY=$SIGNING_IDENTITY" >> $GITHUB_ENV
+
+      - name: Generate native iOS project
+        run: npx expo prebuild -p ios --clean --no-install
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Detect workspace and scheme
+        id: detect
+        run: |
+          WORKSPACE=$(ls ios/*.xcworkspace 2>/dev/null | head -1)
+          WORKSPACE_BASE=$(basename "$WORKSPACE")
+          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" 2>/dev/null | grep -A 100 "Schemes:" | grep -v "Schemes:" | sed 's/^[[:space:]]*//' | grep -v '^$' | head -1)
+          echo "workspace=$WORKSPACE_BASE" >> $GITHUB_OUTPUT
+          echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
+          echo "Workspace: $WORKSPACE_BASE, Scheme: $SCHEME"
+
+      - name: Create ExportOptions.plist
+        env:
+          EXPORT_METHOD: ${{ github.event.inputs.export_method || 'ad-hoc' }}
+        run: |
+          cat > ios/ExportOptions.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>$EXPORT_METHOD</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>${{ env.BUNDLE_ID }}</key>
+              <string>${{ env.PROFILE_UUID }}</string>
+            </dict>
+            <key>signingStyle</key>
+            <string>manual</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Archive app
+        env:
+          PROFILE_UUID: ${{ env.PROFILE_UUID }}
+          SIGNING_IDENTITY: ${{ env.SIGNING_IDENTITY }}
+        run: |
+          cd ios
+          xcodebuild -workspace ${{ steps.detect.outputs.workspace }} -scheme ${{ steps.detect.outputs.scheme }} \
+            -configuration Release -sdk iphoneos \
+            -archivePath build/app.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
+            DEVELOPMENT_TEAM="" \
+            archive
+          cd ..
+
+      - name: Export IPA
+        run: |
+          cd ios
+          xcodebuild -exportArchive \
+            -archivePath build/app.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions.plist
+          cd ..
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa-${{ github.run_number }}
+          path: ios/build/ipa/*.ipa
